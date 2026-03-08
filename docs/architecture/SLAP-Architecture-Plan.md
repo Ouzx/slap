@@ -755,6 +755,12 @@ These files contain what was previously in `docs/ai/roles/` and `docs/ai/skills/
 **MCP servers (configured in editor MCP settings):**
 
 ```
+context7       # Context7 (global) — resolves up-to-date library docs on demand.
+               # The agent calls context7 before touching any third-party API to get
+               # the current version's docs rather than relying on potentially stale
+               # training data. Use on every task that involves an external package.
+               # Already configured globally; no per-project setup needed.
+
 task-server    # Reads/writes docs/tasks/ — agent queries open tasks, claims work,
                # updates status, notes blockers. See section 20 for full spec.
 db-server      # Drizzle schema introspection — agent can query table structure
@@ -785,6 +791,7 @@ Tasks are the communication protocol between the human and the AI agent. The hum
 
 ## Status: in-progress
 ## Created: 2026-03-15   ## Completed: —
+## Branch: feat/TASK-042-email-queue-retry
 ## Related: TASK-039 (Queue bindings setup), TASK-041 (Resend integration)
 
 ## Goal
@@ -827,13 +834,27 @@ The workflow is conversation-first. The human describes what is needed in natura
 
 1. **Human describes** the feature, bug, or task in the editor chat (no specific format required).
 2. **AI creates task file(s)** in `docs/tasks/open/` — may create multiple related tasks if the work is large enough to split. Each gets an auto-incremented `TASK-NNN` ID derived from existing files.
-3. **AI reads context** — queries the task MCP server for related open tasks, reads relevant skill files, checks existing schema via the db MCP server.
-4. **AI implements** in steps, updating the task's `Implementation` section as each piece lands.
-5. **AI notes blockers or remaining work** in the `Remaining` section rather than leaving work half-done and undocumented.
-6. **Human reviews** the diff and the task file together — the task doc is the PR description.
-7. **AI (or human) closes** the task — sets `Status: done`, moves to `docs/tasks/done/`.
+3. **AI creates a branch** for the task before touching any code. Branch name follows conventional naming:
 
-> **Note:** There is no CLI command for task management yet — the `slap` CLI is planned post-v1. Until then, task files are created and managed directly by the AI agent in the file system. The Task MCP server (see section 20) provides the structured API layer on top of these files.
+   ```
+   # Format:  <type>/TASK-<id>-<short-slug>
+   # Types:   feat  fix  chore  refactor  docs  test
+
+   feat/TASK-042-email-queue-retry
+   fix/TASK-051-auth-session-expiry
+   chore/TASK-055-upgrade-drizzle-v1
+   refactor/TASK-048-validators-split
+   ```
+
+   One branch per task — no mixing unrelated changes. If a task spawns sub-tasks, each sub-task gets its own branch and links back to the parent in its `Related` field.
+
+4. **AI reads context** — calls context7 for any external package docs relevant to the task, queries the task MCP server for related open tasks, checks schema via the db MCP server.
+5. **AI implements** in steps, updating the task's `Implementation` section as each piece lands.
+6. **AI notes blockers or remaining work** in the `Remaining` section rather than leaving work half-done and undocumented.
+7. **Human reviews** the diff and the task file together — the task doc is the PR description. Branch is merged and deleted.
+8. **AI (or human) closes** the task — sets `Status: done`, moves to `docs/tasks/done/`.
+
+> **Note:** There is no CLI command for task management yet — the `slap` CLI is planned post-v1. Until then, task files are created and managed directly by the AI agent in the file system, and branches are created with a standard `git checkout -b` command. The Task MCP server (see section 20) provides the structured API layer on top of these files.
 
 ---
 
