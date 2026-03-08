@@ -14,6 +14,7 @@
     "release": "changeset publish"
   },
   "devDependencies": {
+    "oxfmt": "^0.36.0",
     "turbo": "^2.8.14"
   }
 }

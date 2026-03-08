@@ -1,0 +1,5 @@
+{
+  "$schema": "../node_modules/oxlint/configuration_schema.json",
+  "$comment": "No dedicated React Native preset exists in ultracite yet. Tracked in https://github.com/Ouzx/slap/issues/29 — revisit when ultracite ships an RN preset.",
+  "extends": ["ultracite/oxlint/core", "ultracite/oxlint/react"]
+}
