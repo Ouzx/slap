@@ -1,0 +1,26 @@
+# Dependencies and monorepo
+node_modules/
+.pnpm-store/
+
+# Turbo
+.turbo/
+
+# Build outputs
+dist/
+.next/
+.wrangler/
+coverage/
+
+# Environment and secrets
+.env
+.env.*
+.dev.vars
+
+# Logs and OS
+*.log
+.DS_Store
+
+# Editor
+.idea/
+*.swp
+*.swo

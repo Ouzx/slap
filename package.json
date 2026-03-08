@@ -1,0 +1,16 @@
+{
+  "name": "slap",
+  "private": true,
+  "packageManager": "pnpm@9.15.0",
+  "scripts": {
+    "dev": "turbo dev",
+    "build": "turbo build",
+    "test": "turbo test",
+    "fix": "turbo fix",
+    "commit": "git add -A && cz",
+    "commit:stage": "cz",
+    "changeset": "changeset",
+    "version": "changeset version",
+    "release": "changeset publish"
+  }
+}

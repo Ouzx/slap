@@ -1,0 +1,12 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "remoteCache": { "enabled": true },
+  "tasks": {
+    "typecheck": { "dependsOn": ["^build"], "outputs": [] },
+    "lint": { "outputs": [] },
+    "fix": { "dependsOn": ["typecheck", "lint"], "outputs": [] },
+    "build": { "dependsOn": ["fix", "^build"], "outputs": [".next/**", "dist/**", ".wrangler/**"] },
+    "test": { "dependsOn": ["fix", "^build"], "outputs": ["coverage/**"] },
+    "dev": { "persistent": true, "cache": false }
+  }
+}
