@@ -1,0 +1,33 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Turbo
+.turbo/
+
+# Build outputs
+dist/
+.next/
+.wrangler/
+coverage/
+
+# Changeset build artifacts
+.changeset/*.js
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+.dev.vars
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.idea/
+*.swp
+*.swo
