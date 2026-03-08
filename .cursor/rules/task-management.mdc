@@ -1,0 +1,10 @@
+---
+description: 
+alwaysApply: true
+---
+
+Before writing any code: create the branch, then immediately open a draft PR referencing the issue(s).
+Develop commit by commit on that branch — small, focused commits with conventional messages.
+Keep the PR description and linked issues updated as work progresses.
+Mark the PR ready for review when the task is complete.
+Use the GitHub MCP for all of this.
