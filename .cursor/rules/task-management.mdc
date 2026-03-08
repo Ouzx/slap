@@ -6,5 +6,7 @@ alwaysApply: true
 Before writing any code: create the branch, then immediately open a draft PR referencing the issue(s).
 Develop commit by commit on that branch — small, focused commits with conventional messages.
 Keep the PR description and linked issues updated as work progresses.
-Mark the PR ready for review when the task is complete.
+Mark the PR ready for review when the task is complete. After completing tasks, create a subagent, and review it via fresh context. Update the pr with the review, and implement patches if needed with commits.
 Use the GitHub MCP for all of this.
+
+Use context7 mcp for the docuement retrival. You can use project skills for the certain tasks.
