@@ -24,7 +24,7 @@
 15. [Design System](#15-design-system)
 16. [Payments — Polar.sh](#16-payments--polarsh)
 17. [Email — @slap/email](#17-email--slapemail)
-18. [Documentation System](#18-documentation-system)
+18. [Documentation & Project Management](#18-documentation--project-management)
 19. [The slap CLI — Post-v1](#19-the-slap-cli--post-v1)
 20. [Beyond v1 — Planned Extensions](#20-beyond-v1--planned-extensions)
 21. [Alternative Structure — Self-hosted (Beyond v1)](#21-alternative-structure--self-hosted-beyond-v1)
@@ -96,10 +96,7 @@ slap/
 │   ├── email/            # React Email templates + Resend adapter
 │   └── analytics/        # PostHog + Sentry shared init
 ├── docs/
-│   ├── project/          # Architecture, ADRs, MVP, feature sets, external setup guide
-│   └── tasks/            # AI-managed task lifecycle documents
-│       ├── open/         # Active tasks
-│       └── done/         # Completed tasks
+│   └── project/          # Architecture, ADRs, MVP, feature sets, external setup guide
 ├── skills/               # Editor skill files (loaded by Cursor/Windsurf skill system)
 │   ├── hono.md
 │   ├── drizzle.md
@@ -184,7 +181,7 @@ Ultracite is the one config that governs everything. The `packages/config` packa
 | Commit linting | commitlint + `@commitlint/config-conventional` — enforces conventional commit format |
 | Commit helper | commitizen + cz-emoji — interactive prompt for emoji conventional commits |
 | Versioning | Changesets — per-package bump + auto-generated `CHANGELOG.md` files |
-| CI/CD | GitHub Actions — lint, typecheck, test, build, deploy (see section 5) |
+| CI/CD | GitHub Actions — fix, test, build on every push; deployments managed via Cloudflare and EAS dashboards (see section 5) |
 
 **`lefthook.yml` (repo root):**
 
@@ -726,50 +723,30 @@ When a block is needed and not available in mvpblocks, search the shadcn communi
 
 ---
 
-## 18. Documentation System
+## 18. Documentation & Project Management
 
 ### 18.1 Folder Overview
 
 | Path | Purpose |
 |---|---|
-| `docs/project/` | Human-authored (or AI-assisted via explicit command). Contains: `ARCHITECTURE.md`, `STACK.md`, `MVP.md`, `FEATURES.md`, `ADR/` (Architecture Decision Records), and `EXTERNAL-SETUP.md` (GUI configuration steps for Cloudflare, EAS, Renovate, Snyk). Updated when architecture changes. |
-| `docs/tasks/` | AI-managed task lifecycle. One Markdown file per task. AI creates, reads, updates, and closes these. Human-readable audit trail of every significant change. |
+| `docs/project/` | Human-authored (or AI-assisted via explicit command). Contains: `ARCHITECTURE.md`, `STACK.md`, `MVP.md`, `FEATURES.md`, `ADR/` (Architecture Decision Records), and `EXTERNAL-SETUP.md`. Updated when architecture changes. |
 
-There is no separate `docs/ai/` folder. AI context is delivered where the AI agent actually operates — through MCP servers and editor skill files — not through a documentation folder it has to remember to read. The two mechanisms are:
-
-- **MCP servers** — structured, queryable context: task state, project graph, schema introspection. The agent calls tools, not reads files.
-- **Editor skills & rules** — `.cursorrules`, `.windsurfrules`, `AGENT.md` at the repo root define coding standards, role behaviours, and stack-specific rules. These are loaded automatically by the editor on every session.
+Task management lives entirely in **GitHub Issues + GitHub Projects** — not in the repo filesystem. This gives native PR/branch linkage, a free Kanban board, and a real API the AI agent calls via the GitHub MCP server. No custom task server to build or maintain.
 
 ### 18.2 AI Context Delivery
 
-**Editor rules (repo root):**
+There is no `docs/ai/` folder. AI context is delivered where the agent actually operates — through MCP servers and editor-loaded skill and rule files.
+
+**Editor rules (repo root, loaded automatically every session):**
 
 ```
-.cursorrules       # Cursor — loaded automatically on every session
+.cursorrules       # Cursor — coding conventions, stack rules, security checklist
 .windsurfrules     # Windsurf — equivalent
-AGENT.md           # Generic briefing for any AI agent (Claude, GPT, etc.)
+AGENT.md           # Generic agent briefing (Claude, GPT, etc.) — what this codebase
+                   # is, what the rules are, what to read before touching anything
 ```
 
-These files contain what was previously in `docs/ai/roles/` and `docs/ai/skills/` — coding conventions, component hierarchy rules, stack-specific patterns, security checklist. They live at the root so every editor picks them up without configuration.
-
-**MCP servers (configured in editor MCP settings):**
-
-```
-context7       # Context7 (global) — resolves up-to-date library docs on demand.
-               # The agent calls context7 before touching any third-party API to get
-               # the current version's docs rather than relying on potentially stale
-               # training data. Use on every task that involves an external package.
-               # Already configured globally; no per-project setup needed.
-
-task-server    # Reads/writes docs/tasks/ — agent queries open tasks, claims work,
-               # updates status, notes blockers. See section 20 for full spec.
-db-server      # Drizzle schema introspection — agent can query table structure
-               # without reading source files
-cf-server      # Cloudflare Workers MCP (official) — binding info, D1 schema,
-               # KV namespaces available to the agent
-```
-
-**Stack skill files (loaded via editor skill system):**
+**Stack skill files (`skills/` at repo root, loaded by editor skill system):**
 
 ```
 skills/hono.md         # Hono patterns, middleware order, error handling
@@ -780,81 +757,129 @@ skills/tiptap.md       # Editor setup, extension rules, JSON persistence
 skills/expo.md         # Router, EAS, native module rules, SecureStore
 ```
 
-Skill files live in a `skills/` directory at the repo root and are loaded by the editor's skill system (Cursor skills, Windsurf skills, etc.) per session or per task.
+**MCP servers (configured in editor MCP settings):**
 
-### 18.3 Task Document Schema
+```
+context7       # (Global) Resolves up-to-date library docs on demand. Call it before
+               # touching any third-party package to get the current version's API
+               # rather than relying on potentially stale training data. Use on every
+               # task that involves an external dependency. No per-project setup needed.
 
-Tasks are the communication protocol between the human and the AI agent. The human describes what is needed; the AI creates the task file(s), plans the work, implements in steps, and keeps the document updated throughout. A task does not have to be completed in one pass — the agent notes remaining work and picks up where it left off.
+github         # GitHub MCP (official) — creates/reads/updates issues and PRs, manages
+               # labels, posts comments, queries project boards. Primary task management
+               # interface for the agent. Configured once with a GitHub token.
 
-```markdown
-# TASK-042: Add email delivery retry via CF Queue
+db-server      # Drizzle schema introspection — agent queries table structure without
+               # reading source files
 
-## Status: in-progress
-## Created: 2026-03-15   ## Completed: —
-## Branch: feat/TASK-042-email-queue-retry
-## Related: TASK-039 (Queue bindings setup), TASK-041 (Resend integration)
-
-## Goal
-Decouple email sends from the HTTP request path. Failed sends must
-retry automatically without manual intervention.
-
-## Plan
-1. Add CF Queue binding to apps/api/wrangler.toml
-2. Replace direct Resend call with queue.send() in email route
-3. Add queue consumer in apps/api/src/consumers/email.ts
-4. Add integration test for retry behaviour
-
-## Implementation
-- apps/api/wrangler.toml — queue binding added ✅
-- apps/api/src/routes/email.ts — enqueue instead of direct send ✅
-- apps/api/src/consumers/email.ts — created ✅
-
-## Tests
-- apps/api/src/consumers/email.test.ts — 4 cases added ✅
-
-## Remaining
-- [ ] Dead-letter queue handling (low priority, can be TASK-045)
-- [ ] Alert on DLQ threshold (depends on observability work in TASK-044)
-
-## Changelog
-- 2026-03-15  Created by AI from human description
-- 2026-03-16  Implementation complete; DLQ work split to future task
+cf-server      # Cloudflare Workers MCP (official) — D1 schema, KV namespaces, binding
+               # info available to the agent at runtime
 ```
 
-**Key properties of the task format:**
+### 18.3 GitHub Issues as Task Management
 
-- `Related` links tasks that depend on or inform each other — the agent uses this to avoid conflicts and understand context.
-- `Remaining` is a first-class section — partial completion is expected and documented, not a failure state.
-- The agent updates the file as it works; the human can read the current state at any time.
-- Tasks live in `docs/tasks/open/` while active and move to `docs/tasks/done/` when closed.
+Every piece of work — feature, bug, chore, refactor — is a GitHub Issue. Issues are the single source of truth for what needs doing, what is in progress, and what is done. The AI agent creates and updates them via the GitHub MCP server.
 
-### 18.4 Task-Driven Agent Workflow
+**Issue template** (`.github/ISSUE_TEMPLATE/task.md`):
 
-The workflow is conversation-first. The human describes what is needed in natural language; the AI takes it from there.
+```markdown
+## Goal
+<!-- What this achieves and why it matters -->
 
-1. **Human describes** the feature, bug, or task in the editor chat (no specific format required).
-2. **AI creates task file(s)** in `docs/tasks/open/` — may create multiple related tasks if the work is large enough to split. Each gets an auto-incremented `TASK-NNN` ID derived from existing files.
-3. **AI creates a branch** for the task before touching any code. Branch name follows conventional naming:
+## Plan
+<!-- Numbered steps the agent will follow -->
+1.
+2.
+3.
 
-   ```
-   # Format:  <type>/TASK-<id>-<short-slug>
-   # Types:   feat  fix  chore  refactor  docs  test
+## Remaining
+<!-- Populated by the agent during implementation — blockers, deferred work -->
 
-   feat/TASK-042-email-queue-retry
-   fix/TASK-051-auth-session-expiry
-   chore/TASK-055-upgrade-drizzle-v1
-   refactor/TASK-048-validators-split
-   ```
+## Notes
+<!-- Any context, links, or decisions worth preserving -->
+```
 
-   One branch per task — no mixing unrelated changes. If a task spawns sub-tasks, each sub-task gets its own branch and links back to the parent in its `Related` field.
+**Labels:**
 
-4. **AI reads context** — calls context7 for any external package docs relevant to the task, queries the task MCP server for related open tasks, checks schema via the db MCP server.
-5. **AI implements** in steps, updating the task's `Implementation` section as each piece lands.
-6. **AI notes blockers or remaining work** in the `Remaining` section rather than leaving work half-done and undocumented.
-7. **Human reviews** the diff and the task file together — the task doc is the PR description. Branch is merged and deleted.
-8. **AI (or human) closes** the task — sets `Status: done`, moves to `docs/tasks/done/`.
+| Label | Meaning |
+|---|---|
+| `status: open` | Created, not yet started |
+| `status: in-progress` | Agent or human is actively working on it |
+| `status: review` | PR open, awaiting review |
+| `status: done` | Closed and merged |
+| `status: blocked` | Waiting on another issue or external factor |
+| `type: feat` | New feature |
+| `type: fix` | Bug fix |
+| `type: chore` | Dependency update, config change, tooling |
+| `type: refactor` | Code restructure with no behaviour change |
+| `type: docs` | Documentation only |
 
-> **Note:** There is no CLI command for task management yet — the `slap` CLI is planned post-v1. Until then, task files are created and managed directly by the AI agent in the file system, and branches are created with a standard `git checkout -b` command. The Task MCP server (see section 20) provides the structured API layer on top of these files.
+**GitHub Projects board:** a single Kanban board per repo with columns mirroring the status labels. Updates automatically via label changes — no manual drag-and-drop needed.
+
+### 18.4 Branch & PR Convention
+
+Each issue gets exactly one branch and one PR. The branch is created from `main` before any code is written.
+
+**Branch naming:**
+
+```
+# Format:  <type>/#<issue-number>-<short-slug>
+
+feat/#42-email-queue-retry
+fix/#51-auth-session-expiry
+chore/#55-upgrade-drizzle-v1
+refactor/#48-validators-split
+docs/#60-update-external-setup
+```
+
+**PR description template** (`.github/pull_request_template.md`):
+
+```markdown
+## Summary
+<!-- What this PR does in 1–2 sentences -->
+
+## Related issues
+Closes #<issue-number>
+<!-- Use "Closes" so GitHub auto-closes the issue on merge -->
+<!-- Multiple: Closes #42, Closes #43 -->
+
+## Changes
+<!-- Bullet list of meaningful file-level changes -->
+-
+-
+
+## Testing
+<!-- How to verify this works -->
+
+## Notes for reviewer
+<!-- Anything that needs extra attention -->
+```
+
+The `Closes #N` line wires the PR to the issue — when the PR merges, the issue closes automatically and the Projects board moves to done.
+
+### 18.5 Task-Driven Agent Workflow
+
+Two entry points depending on how the work starts:
+
+**Path A — Human links an existing issue, agent implements:**
+
+1. Human opens editor chat and says *"implement #42"* or shares the issue URL.
+2. Agent reads the issue via GitHub MCP, then calls context7 for any relevant package docs, queries db-server for schema context if needed.
+3. Agent creates branch `feat/#42-email-queue-retry` and immediately opens a **draft PR** — title `feat: email queue retry (#42)`, body pre-filled using the PR template with `Closes #42`. Labels the issue `status: in-progress`.
+4. Agent implements in steps, pushing commits to the branch as each piece completes.
+5. Agent posts progress notes and any deferred work as **issue comments** via GitHub MCP — nothing is left undocumented.
+6. Agent marks the PR **ready for review** when complete, updates label to `status: review`.
+7. Human reviews diff + PR description. Merges. Issue closes automatically. Branch deleted.
+
+**Path B — Human describes work, agent creates the issue and implements:**
+
+1. Human describes the feature or fix in natural language in the editor chat.
+2. Agent creates the GitHub Issue(s) via GitHub MCP — title, body with plan, appropriate type and status labels. May create multiple linked issues if the scope warrants splitting.
+3. Agent proceeds from step 3 of Path A.
+
+**Sub-tasks and dependencies:** if a task is too large for one PR, the agent splits it into multiple issues and links them with GitHub's native issue references (`depends on #39`, `blocked by #41`). One branch and PR per issue, worked through in dependency order.
+
+> **No CLI needed for any of this.** GitHub MCP handles all issue and PR operations. Branch creation is a standard `git checkout -b` the agent runs in the terminal.
 
 ---
 
@@ -880,16 +905,16 @@ Will bootstrap a fully configured app from the SLAP template in a single command
 
 | Command | Description |
 |---|---|
-| `slap add feature <n>` | Scaffolds: API route file, Zod schema, Drizzle table file, Vitest integration test, task doc |
+| `slap add feature <n>` | Scaffolds: API route file, Zod schema, Drizzle table file, Vitest integration test |
 | `slap add page <n>` | Scaffolds: Next.js page + `loading.tsx` + `error.tsx` + Playwright test file |
 | `slap add email <n>` | Scaffolds: React Email template + preview entry + send helper in `@slap/email` |
-| `slap task new <title>` | Creates `docs/tasks/open/TASK-NNN.md` with auto-incremented ID |
-| `slap task done <id>` | Marks task done, sets completed date, moves file to `docs/tasks/done/` |
 | `slap check` | Runs full CI locally: fix + test + build — same sequence as `ci.yml` |
 | `slap deploy <env>` | Deploys all apps to preview or production via wrangler |
 | `slap db migrate` | Runs latest migration against local or production D1 (`--env prod` flag) |
 
-**Until the CLI exists:** run `pnpm install`, create `.env` from `.env.example`, and run `pnpm --filter @slap/db db:migrate` manually. Task files are created directly by the AI agent. All other workflows operate the same way.
+**Task management via CLI:** not planned. Issues, branches, and PRs are managed through GitHub directly or via the GitHub MCP server in the editor.
+
+**Until the CLI exists:** run `pnpm install`, create `.env` from `.env.example`, and run `pnpm --filter @slap/db db:migrate` manually. All other workflows operate the same way.
 
 ---
 
@@ -903,50 +928,11 @@ Will bootstrap a fully configured app from the SLAP template in a single command
 | Organisations | Better-Auth organisations plugin — multi-tenant with member roles |
 | i18n | next-intl fully activated — locale routing and message files per language |
 | slap CLI | `npx slap init` and scaffolding commands — see section 19 |
-| Task MCP server | See expanded spec below |
-| slap-orchestrate | Multi-agent task runner — reads skill files and open tasks to implement features autonomously end-to-end |
+| slap-orchestrate | Multi-agent task runner — reads skill files, queries GitHub Issues, and implements features autonomously end-to-end |
 | slap-deploy | Automated App Store / Play Store pipeline — metadata, screenshots, versioning, EAS Submit from CLI |
 | slap-ads | Meta Ads management — campaign creation, A/B tracking, connected to PostHog cohorts |
 | slap-analytics | Cross-app AI analytics — revenue attribution, churn prediction, growth metrics dashboard |
 | slap-factory | The full app factory — idea → deployed app in one command; combines all slap-* tools |
-
-### 20.1 Task MCP Server — Expanded Spec
-
-The Task MCP server turns the file-based `docs/tasks/` system into a structured, queryable API for AI agents and human dashboards. It is designed to be the connective tissue between the agent's work and the human's visibility.
-
-**What it does:**
-
-- Agents connect via the MCP protocol and call tools: `list_tasks`, `get_task`, `create_task`, `update_task`, `close_task`, `link_tasks`, `search_tasks`.
-- Every mutation is written back to the `docs/tasks/` markdown files — the files remain the source of truth and are always human-readable without the server.
-- Agents can query related tasks by ID, status, or tag before starting work — prevents duplicate effort and conflict.
-
-**Self-hosted deployment:**
-
-```yaml
-# docker-compose.yml (included in the task-server repo)
-services:
-  task-server:
-    image: ghcr.io/slap/task-server:latest
-    ports:
-      - "3100:3100"
-    volumes:
-      - ./docs/tasks:/data/tasks   # mounts your repo's task folder
-    environment:
-      - API_KEY=${TASK_SERVER_API_KEY}
-      - DB_PATH=/data/tasks.db     # SQLite index alongside the MD files
-```
-
-Run it locally alongside the dev stack or deploy it on any VPS. The MCP client config in `.cursorrules` / `.windsurfrules` points to `http://localhost:3100`.
-
-**Managed plan (SaaS):**
-
-A hosted version is planned at `tasks.slap.dev` that connects directly to a GitHub repo via OAuth. Features beyond the self-hosted version:
-
-- **Dashboard** — visual project board (Kanban), task timeline, agent activity log, and per-project status at a glance.
-- **API keys** — generate per-project keys; agents authenticate with `Bearer <key>`. Revoke anytime.
-- **Logs** — every agent tool call is logged with timestamp, agent identity, and the diff produced. Full audit trail without reading git history.
-- **Multi-project** — one account, many repos. Cross-project task linking for work that spans apps.
-- **Webhooks** — notify Slack, Discord, or a custom endpoint when a task changes status.
 
 ---
 
