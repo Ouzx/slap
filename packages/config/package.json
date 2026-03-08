@@ -12,6 +12,17 @@
     "./ultracite/expo": "./ultracite/expo.json",
     "./vitest/base": "./vitest.base.ts"
   },
+  "scripts": {
+    "fix": "echo 'No fixable sources in @slap/config'"
+  },
+  "peerDependencies": {
+    "@cloudflare/workers-types": ">=4.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@cloudflare/workers-types": {
+      "optional": true
+    }
+  },
   "devDependencies": {
     "oxlint": "^1.51.0",
     "ultracite": "^7.2.5",
