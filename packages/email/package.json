@@ -1,0 +1,30 @@
+{
+  "name": "@slap/email",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "dev": "react-email dev",
+    "fix": "oxlint -c .ultraciterc.json src/",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@react-email/components": "^0.5.7",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "resend": "^6.0.5"
+  },
+  "devDependencies": {
+    "@slap/config": "workspace:*",
+    "@types/react": "^19.1.13",
+    "@types/react-dom": "^19.1.9",
+    "oxlint": "^1.51.0",
+    "react-email": "^4.3.1",
+    "typescript": "^5.9.2",
+    "vitest": "^4.0.18"
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "name": "@slap/validators",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "fix": "oxlint -c .ultraciterc.json src/",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@slap/config": "workspace:*",
+    "oxlint": "^1.51.0",
+    "typescript": "^5.9.2",
+    "vitest": "^4.0.18"
+  }
+}

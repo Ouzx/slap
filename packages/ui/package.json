@@ -1,0 +1,33 @@
+{
+  "name": "@slap/ui",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./tokens.css": "./src/tokens.css"
+  },
+  "scripts": {
+    "fix": "oxlint -c .ultraciterc.json src/",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "dependencies": {
+    "clsx": "^2.1.1",
+    "tailwindcss": "^4.1.13"
+  },
+  "devDependencies": {
+    "@slap/config": "workspace:*",
+    "@testing-library/react": "^16.3.0",
+    "@types/react": "^19.1.13",
+    "@types/react-dom": "^19.1.9",
+    "jsdom": "^26.1.0",
+    "oxlint": "^1.51.0",
+    "typescript": "^5.9.2",
+    "vitest": "^4.0.18"
+  }
+}
