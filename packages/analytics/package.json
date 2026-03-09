@@ -1,0 +1,27 @@
+{
+  "name": "@slap/analytics",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "fix": "oxlint -c .ultraciterc.json src/",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "peerDependencies": {
+    "@sentry/browser": "^10.20.0",
+    "posthog-js": "^1.280.0"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20250929.0",
+    "@slap/config": "workspace:*",
+    "@sentry/browser": "^10.20.0",
+    "oxlint": "^1.51.0",
+    "posthog-js": "^1.280.0",
+    "typescript": "^5.9.2",
+    "vitest": "^4.0.18"
+  }
+}

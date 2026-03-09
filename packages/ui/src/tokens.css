@@ -1,0 +1,26 @@
+:root {
+  --slap-color-bg: #fbf8f1;
+  --slap-color-surface: #fffdf8;
+  --slap-color-surface-strong: #f1eadc;
+  --slap-color-border: #d7c7a7;
+  --slap-color-text: #1d1a16;
+  --slap-color-text-muted: #675d50;
+  --slap-color-primary: #14532d;
+  --slap-color-primary-contrast: #f6f5ef;
+  --slap-color-danger: #b42318;
+  --slap-color-success: #157347;
+  --slap-color-warning: #b36b00;
+  --slap-radius-sm: 0.5rem;
+  --slap-radius-md: 0.875rem;
+  --slap-radius-lg: 1.25rem;
+  --slap-shadow-sm: 0 10px 30px -18px rgb(29 26 22 / 0.45);
+  --slap-shadow-md: 0 24px 60px -32px rgb(29 26 22 / 0.45);
+  --slap-space-1: 0.25rem;
+  --slap-space-2: 0.5rem;
+  --slap-space-3: 0.75rem;
+  --slap-space-4: 1rem;
+  --slap-space-5: 1.5rem;
+  --slap-space-6: 2rem;
+  --slap-font-sans:
+    "IBM Plex Sans", "Avenir Next", "Segoe UI", sans-serif;
+}
